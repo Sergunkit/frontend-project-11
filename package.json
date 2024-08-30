@@ -1,5 +1,5 @@
 {
-  "name": "my-webpack-project",
+  "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "My webpack project",
   "main": "index.js",
@@ -37,9 +37,9 @@
     "html-webpack-plugin": "^5.6.0",
     "jest": "^29.7.0",
     "postcss-loader": "^8.1.1",
-    "Sass": "^1.72.0",
-    "sass-loader": "^16.0.1",
-    "style-loader": "^4.0.0",
+    "sass": "^1.72.0",
+    "sass-loader": "^14.1.1",
+    "style-loader": "^3.3.4",
     "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.0.4"
