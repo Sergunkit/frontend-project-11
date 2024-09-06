@@ -31,6 +31,7 @@ const loadRss = (watchedState, url) => {
   return axios.get(urlWithProxy)
     .then((response) => {
       const data = parse(response.data.contents);
+      // console.log(response.data.contents);
       const feed = {
         url, id: _.uniqueId(), title: data.title, description: data.descrpition,
       };
