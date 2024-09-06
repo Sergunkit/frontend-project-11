@@ -111,6 +111,9 @@ export default (initState, elements, i18next) => {
       button.setAttribute('type', 'button');
       button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
       button.dataset.id = post.id;
+      button.dataset.bsToggle = 'modal';
+      button.dataset.bsTarget = '#modal';
+      button.textContent = i18next.t('view');
       element.appendChild(button);
       return element;
     });

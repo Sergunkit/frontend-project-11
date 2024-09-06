@@ -8,6 +8,8 @@ import resources from './locales/index.js';
 import locale from './locales/locale.js';
 import parse from './rss.js';
 
+const fetchingTimeout = 5000;
+
 const addProxy = (url) => {
   const urlWithProxy = new URL('/get', 'https://allorigins.hexlet.app');
   urlWithProxy.searchParams.set('url', url);
@@ -23,6 +25,27 @@ const getLoadingProcessErrorType = (e) => {
     return 'netErr';
   }
   return 'unknown';
+};
+
+const fetchNewPosts = (watchedSate) => {
+  const promises = watchedSate.feeds.map((feed) => {
+    const urlWithProxy = addProxy(feed.url);
+    return axios.get(urlWithProxy)
+      .then((response) => {
+        const feedData = parse(response.data.contents);
+        const newPosts = feedData.items.map((item) => ({ ...item, channelId: feed.id }));
+        const oldPosts = watchedSate.posts.filter((post) => post.channelId === feed.id);
+        const posts = _.differenceWith(newPosts, oldPosts, (p1, p2) => p1.title === p2.title)
+          .map((post) => ({ ...post, id: _.uniqueId() }));
+        watchedSate.posts.unshift(...posts);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  });
+  Promise.all(promises).finally(() => {
+    setTimeout(() => fetchNewPosts(watchedSate), fetchingTimeout);
+  });
 };
 
 const loadRss = (watchedState, url) => {
@@ -120,6 +143,8 @@ export default () => {
             }
           });
       });
+
+      setTimeout(() => fetchNewPosts(watchedState), fetchingTimeout);
     });
   return promise;
 };
