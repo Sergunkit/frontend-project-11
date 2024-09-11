@@ -18,11 +18,12 @@ export default (initState, elements, i18next) => {
     const { submit, input, feedback } = elements;
 
     switch (loadingProcess.status) {
-      case 'failed':
-        submit.disabled = false;
-        input.removeAttribute('readonly');
-        feedback.classList.add('text-danger');
-        feedback.textContent = i18next.t([`errors.${loadingProcess.error}`, 'errors.unknown']);
+      case 'loading':
+        submit.disabled = true;
+        input.setAttribute('readonly', true);
+        feedback.classList.remove('text-success');
+        feedback.classList.remove('text-danger');
+        feedback.innerHTML = '';
         break;
       case 'success':
         submit.disabled = false;
@@ -32,12 +33,11 @@ export default (initState, elements, i18next) => {
         feedback.textContent = i18next.t('loadSuccess');
         input.focus();
         break;
-      case 'loading':
-        submit.disabled = true;
-        input.setAttribute('readonly', true);
-        feedback.classList.remove('text-success');
-        feedback.classList.remove('text-danger');
-        feedback.innerHTML = '';
+      case 'failed':
+        submit.disabled = false;
+        input.removeAttribute('readonly');
+        feedback.classList.add('text-danger');
+        feedback.textContent = i18next.t([`errors.${loadingProcess.error}`, 'errors.unknown']);
         break;
       default:
         throw new Error(`Unknown loadingProcess status: '${loadingProcess.status}'`);
@@ -80,7 +80,7 @@ export default (initState, elements, i18next) => {
   };
 
   const handlePosts = (state) => {
-    const { posts } = state;
+    const { posts, ui } = state;
     const { postBox } = elements;
 
     const container = document.createElement('div');
@@ -101,7 +101,8 @@ export default (initState, elements, i18next) => {
       element.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
       const link = document.createElement('a');
       link.setAttribute('href', post.link);
-      link.classList.add('fw-bold');
+      const className = ui.seenPosts.has(post.id) ? ['fw-normal', 'link-secodary'] : ['fw-bold'];
+      link.classList.add(...className);
       link.dataset.id = post.id;
       link.textContent = post.title;
       link.setAttribute('target', '_blank');
@@ -124,6 +125,17 @@ export default (initState, elements, i18next) => {
     postBox.appendChild(container);
   };
 
+  const handleModal = (state) => {
+    const post = state.posts.find(({ id }) => id === state.modal.postId);
+    const title = elements.modal.querySelector('.modal-title');
+    const body = elements.modal.querySelector('.modal-body');
+    const fullArticleBtn = elements.modal.querySelector('.full-article');
+
+    title.textContent = post.title;
+    body.textContent = post.description;
+    fullArticleBtn.href = post.link;
+  };
+
   const watchedState = onChange(initState, (path) => {
     switch (path) {
       case 'form':
@@ -136,6 +148,12 @@ export default (initState, elements, i18next) => {
         handleFeeds(initState);
         break;
       case 'posts':
+        handlePosts(initState);
+        break;
+      case 'modal.postId':
+        handleModal(initState);
+        break;
+      case 'ui.seenPosts':
         handlePosts(initState);
         break;
       default:

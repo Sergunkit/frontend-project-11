@@ -33,14 +33,14 @@ const fetchNewPosts = (watchedSate) => {
     return axios.get(urlWithProxy)
       .then((response) => {
         const feedData = parse(response.data.contents);
-        const newPosts = feedData.items.map((item) => ({ ...item, channelId: feed.id }));
+        const allPosts = feedData.items.map((item) => ({ ...item, channelId: feed.id }));
         const oldPosts = watchedSate.posts.filter((post) => post.channelId === feed.id);
-        const posts = _.differenceWith(newPosts, oldPosts, (p1, p2) => p1.title === p2.title)
+        const newPosts = _.differenceWith(allPosts, oldPosts, (p1, p2) => p1.title === p2.title)
           .map((post) => ({ ...post, id: _.uniqueId() }));
-        watchedSate.posts.unshift(...posts);
+        watchedSate.posts.unshift(...newPosts);
       })
-      .catch((error) => {
-        console.error(error);
+      .catch((err) => {
+        console.error(err);
       });
   });
   Promise.all(promises).finally(() => {
@@ -54,7 +54,6 @@ const loadRss = (watchedState, url) => {
   return axios.get(urlWithProxy)
     .then((response) => {
       const data = parse(response.data.contents);
-      // console.log(response.data.contents);
       const feed = {
         url, id: _.uniqueId(), title: data.title, description: data.descrpition,
       };
@@ -70,9 +69,9 @@ const loadRss = (watchedState, url) => {
         error: null,
       };
     })
-    .catch((e) => {
-      console.log(e);
-      watchedState.loadingProcess.error = getLoadingProcessErrorType(e);
+    .catch((err) => {
+      console.log(err);
+      watchedState.loadingProcess.error = getLoadingProcessErrorType(err);
       watchedState.loadingProcess.status = 'failed';
     });
 };
@@ -85,6 +84,7 @@ export default () => {
     submit: document.querySelector('.rss-form button[type="submit"]'),
     feedBox: document.querySelector('.feeds'),
     postBox: document.querySelector('.posts'),
+    modal: document.querySelector('#modal'),
   };
 
   const initState = {
@@ -98,6 +98,12 @@ export default () => {
       error: null,
       valid: false,
       status: 'filling',
+    },
+    modal: {
+      postId: null,
+    },
+    ui: {
+      seenPosts: new Set(),
     },
   };
 
@@ -115,7 +121,7 @@ export default () => {
 
         return schema.validate(url)
           .then(() => null)
-          .catch((error) => error.message);
+          .catch((err) => err.message);
       };
 
       const watchedState = watcher(initState, elements, i18nextInstance);
@@ -126,8 +132,8 @@ export default () => {
         const url = data.get('url');
 
         validateUrl(url, watchedState.feeds)
-          .then((error) => {
-            if (!error) {
+          .then((err) => {
+            if (!err) {
               watchedState.form = {
                 ...watchedState.form,
                 error: null,
@@ -137,11 +143,20 @@ export default () => {
             } else {
               watchedState.form = {
                 ...watchedState.form,
-                error: error.key,
+                error: err.key,
                 valid: false,
               };
             }
           });
+      });
+
+      elements.postBox.addEventListener('click', (event) => {
+        if (!('id' in event.target.dataset)) {
+          return;
+        }
+        const { id } = event.target.dataset;
+        watchedState.modal.postId = String(id);
+        watchedState.ui.seenPosts.add(id);
       });
 
       setTimeout(() => fetchNewPosts(watchedState), fetchingTimeout);
