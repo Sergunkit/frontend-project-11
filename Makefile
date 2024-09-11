@@ -5,17 +5,11 @@ install:
 develop:
 	npx webpack serve
 
-.PHONY:
-	test
+build:
+	npm run build
 
 lint:
 	npx eslint .
 
 lint-fix:
 	npx eslint --fix
-
-test:
-	NODE_OPTIONS=--experimental-vm-modules npx jest
-
-build:
-	npm run build

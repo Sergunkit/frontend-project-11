@@ -10,6 +10,8 @@ https://frontend-project-11-q3ea.vercel.app/
 ### Overview
 RSS aggregator is an application for automatically collecting messages from sources that export in RSS format, such as news headlines, blogs, podcasts and video hosting sites.
 
-### Bash
+```bash
+git clone git@github.com:sergunkit/frontend-project-11.git
 make install
-make build
+make develop
+```
