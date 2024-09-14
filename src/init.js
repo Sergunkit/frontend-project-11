@@ -49,7 +49,8 @@ const fetchNewPosts = (watchedSate) => {
 };
 
 const loadRss = (watchedState, url) => {
-  watchedState.loadingProcess.status = 'loading';
+  const localWatchedState = watchedState;
+  localWatchedState.loadingProcess.status = 'loading';
   const urlWithProxy = addProxy(url);
   return axios.get(urlWithProxy)
     .then((response) => {
@@ -58,12 +59,12 @@ const loadRss = (watchedState, url) => {
         url, id: _.uniqueId(), title: data.title, description: data.descrpition,
       };
       const posts = data.items.map((item) => ({ ...item, channelId: feed.id, id: _.uniqueId() }));
-      watchedState.posts.unshift(...posts);
-      watchedState.feeds.unshift(feed);
+      localWatchedState.posts.unshift(...posts);
+      localWatchedState.feeds.unshift(feed);
 
-      watchedState.loadingProcess.error = null;
-      watchedState.loadingProcess.status = 'success';
-      watchedState.form = {
+      localWatchedState.loadingProcess.error = null;
+      localWatchedState.loadingProcess.status = 'success';
+      localWatchedState.form = {
         ...watchedState.form,
         status: 'filling',
         error: null,
@@ -71,8 +72,8 @@ const loadRss = (watchedState, url) => {
     })
     .catch((err) => {
       console.log(err);
-      watchedState.loadingProcess.error = getLoadingProcessErrorType(err);
-      watchedState.loadingProcess.status = 'failed';
+      localWatchedState.loadingProcess.error = getLoadingProcessErrorType(err);
+      localWatchedState.loadingProcess.status = 'failed';
     });
 };
 
